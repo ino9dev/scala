@@ -1,23 +1,80 @@
 import scala.actors.Actor
 import scala.actors.Actor._
 
-class DataBean[T](_name:T){
-  var name = _name
-  def getName():T ={this.name}
-  def setName(name:T):Unit = this.name = name
-}
-
-object Monoid {
-  def mappend(a: Int, b: Int): Int = a + b
-  def mzero: Int = 0
-}
-
-object Sample{
-  var name = "Sample"
+//objectを使うとシングルトンが出来る
+class ClsSample {
   
-  def sum(xs : List[Int]):Int = xs.foldLeft(0){_+_}
-  //def ap[A,B](fa: => F[A])(f: => F[A => B]): F[B]
+  //関数定義１(Intを返却する関数f1)
+  //戻り値は最後に記述した値を返却 or return句で指定
+  def f1():Int = {0}
+  //関数定義２（引数を複数取る関数）
+  def f2(x:Int,y:Int):Int = {Math.sqrt(x^2+y^2).toInt} //norm
+  //関数定義３（引数リストを複数取る関数）
+  def f3(x:Int)(y:Int):Int = x+y
+
+  //コンストラクタはここに書く
+  //newされたとき実行される
+  println("This Sample Object was instanced")
+  val f4 = (x:Int,y:Int)=>{x+y}
+  
+  //curried && apply
+  println("f4 has two args x:Int,y:Int. f4 is curried with first arg and curried method return f4(1)(_). f4(1).apply(1) return " +(f4.curried(1))(1))
+
+  //applyするもよし省略するもよし
+  println(s"apply は省略できる=>" + f4.curried(1).apply(1))
+  println(s"apply は省略できる=>" + f4.curried(1)(1))
+  
+  //collectionとその演算たち
+  //参照：http://qiita.com/f81@github/items/75c616a527cf5c039676
+  var seq = Seq(1,2,3)
+  println(s"Sequence（並び順が有りSequenced List）" + seq)
+  println(s"Intersect（席集合）" + seq.intersect(Seq(2)))
+  println(s"Diff(差集合)" + seq.diff(Seq(1,2)))
+  
+  //高階関数あれこれ
+  val list = (1 to 10).toList
+  println(s"1..10を2倍したListを返す" + list.map(_*2))
+  println(s"1..10をreduceする" + list.reduce((e1,e2)=>(e1+e2)))
+  println(s"1..10をsumする" + list.sum)
+  println(s"1..10をflattenする" + List(List(1,2,3),List(4,5,6),List(7,8,9),List(10)).flatten)
+  
+  //畳み込み(1,2,3,4,5,6,7,8,9,10) => ((((0)+1)+2)+3)
+  println(s"1..10をfoldRightする" + (1 to 3).toList.foldRight(0)((e1,e2)=>(e1+e2)))
+  //副作用あり
+  println(s"1..10をforeachでprintする" + (1 to 10).toList.foreach(print(_)))
+  println(s"1..10をforeachでprintする" + (1 to 10).toList.foreach(print))
+  
+  //タプル
+  println(s"タプル"+(1,2).getClass())
+  
+}
+object Sample{
+
+  //main関数の呼び出し
   def main(args:Array[String]) : Unit = {
+    
+    var concreatedSample = new ClsSample
+    
+    //可変変数
+    var name = "Sample"
+    
+    //不変変数
+    val staicname = "StaticName"
+    //error
+    //staticname = "OtherStaticName"
+    
+    //innner関数定義
+    def sum(x:List[Int]):Int = {return 0}
+    
+    //lambda（無名関数）
+    var f = (e:Int)=>(e*2)
+    //関数適用(apply)
+    println(f(2))
+    println(f.apply(2))
+    
+
+    //def sum(xs : List[Int]):Int = xs.foldLeft(0){_+_}
+    //def ap[A,B](fa: => F[A])(f: => F[A => B]): F[B]
     
     println(List(1,2,3,4,5).sum)
     /*
@@ -54,7 +111,6 @@ object Sample{
     def ids[HOGE](a:HOGE)=((a:HOGE)=>(a:HOGE))
     //略記
     def id[HOGE]: HOGE=> HOGE = a=>a
-    
     def ff[HOGE]: (HOGE=>HOGE) = (a=>a)
     
     //def define
@@ -169,7 +225,6 @@ class CatSample {
 class Category {
   //恒等射
   //Aという型を持つ、idという関数
-  
   def id[A]: A => A = a => a
   def compose[A, B, C](g: B => C, f: A => B): A => C = g compose f // This is Function.compose, not a recursive call!
 }
@@ -196,3 +251,14 @@ class Category {
 //    }
 //  }
 //}
+
+class DataBean[T](_name:T){
+  var name = _name
+  def getName():T ={this.name}
+  def setName(name:T):Unit = this.name = name
+}
+
+object Monoid {
+  def mappend(a: Int, b: Int): Int = a + b
+  def mzero: Int = 0
+}
