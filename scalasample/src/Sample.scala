@@ -28,8 +28,9 @@ class ClsSample {
   //参照：http://qiita.com/f81@github/items/75c616a527cf5c039676
   var seq = Seq(1,2,3)
   println(s"Sequence（並び順が有りSequenced List）" + seq)
-  println(s"Intersect（席集合）" + seq.intersect(Seq(2)))
-  println(s"Diff(差集合)" + seq.diff(Seq(1,2)))
+  println(s"Intersect（積集合）" + seq.intersect(Seq(2))) //(2)
+  println(s"Union（和集合）" + seq.union(Seq(4))) //(1,2,3,4)
+  println(s"Diff(差集合)" + seq.diff(Seq(1,2))) //(3)
   
   //高階関数あれこれ
   val list = (1 to 10).toList
@@ -37,6 +38,8 @@ class ClsSample {
   println(s"1..10をreduceする" + list.reduce((e1,e2)=>(e1+e2)))
   println(s"1..10をsumする" + list.sum)
   println(s"1..10をflattenする" + List(List(1,2,3),List(4,5,6),List(7,8,9),List(10)).flatten)
+  println(s"1..10をflatMapする" + List(list,list).flatMap{x=>x :+ 11}) //List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+  println(s"1..10を2の倍数でfilterする" + list.filter(e=>(if(e%2!=0){true}else{false}))) //List(1,3,5,7,9)
   
   //畳み込み(1,2,3,4,5,6,7,8,9,10) => ((((0)+1)+2)+3)
   println(s"1..10をfoldRightする" + (1 to 3).toList.foldRight(0)((e1,e2)=>(e1+e2)))
@@ -46,6 +49,7 @@ class ClsSample {
   
   //タプル
   println(s"タプル"+(1,2).getClass())
+
   
 }
 object Sample{
@@ -60,6 +64,7 @@ object Sample{
     
     //不変変数
     val staicname = "StaticName"
+    
     //error
     //staticname = "OtherStaticName"
     
@@ -67,38 +72,37 @@ object Sample{
     def sum(x:List[Int]):Int = {return 0}
     
     //lambda（無名関数）
-    var f = (e:Int)=>(e*2)
-    //関数適用(apply)
-    println(f(2))
-    println(f.apply(2))
-    
+    val lambdaf = (e:Int)=>(e*2)
 
+    //多相関数
+    //２種類ある
+    //パラメトリック多相 ... 構造に作用し、なかの値の型を問わない
+    //アドホック多相 ... 型クラスによる多相性、異なる型の間で共通したインターフェースでの異なる振る舞いを定義済みの型に対して拡張する
+    //ref : http://eed3si9n.com/learning-scalaz/ja/polymorphism.html
+    //ref : https://skami.iocikun.jp/computer/haskell/web_lecture/for_programmer/polymorphic.html
+    //ref : http://chopl.in/post/2012/11/06/introduction-to-typeclass-with-scala/
+
+    def parametric[K](list:List[K])=(list.head)
+    println(s"Intの要素を持つListの一つ目を取り出す" + parametric(List(1,2,3))) //1
+    println(s"Stringの要素を持つListの一つ目を取り出す" + parametric(List("A","B","C")))
+    
+    trait Add[A] { def add(e1:A,e2:A):A } //関数定義のみ
+    class AdhocStringAdd extends Add[String]{ def add(a:String,b:String):String=(a+b)} //Add関数定義を継承したAdhocStringAdd
+    def adhocadd[A: Add](a1:A,a2:A):A = implicitly[Add[A]].add(a1,a2)
+    
     //def sum(xs : List[Int]):Int = xs.foldLeft(0){_+_}
     //def ap[A,B](fa: => F[A])(f: => F[A => B]): F[B]
     
-    println(List(1,2,3,4,5).sum)
-    /*
-    var variable = 0
-    val variable_final = 0
-    var variable_final2 = new DataBean("name")
-    
-    variable_final2.name = "hoge"
-    variable = 1
-    
-    */
     //列挙する
     var l = for(i <- 1 to 5) yield i
-    println(l)
-    println((1 to 10).filter((i)=>i % 2 == 0))
+    println(s"yielded" + l)
+
 
     /*
     var cat = new CatSample
     println(cat.id[String]("this is id"))
     var a = List(1 to 10)
     println(a)
-    
-    //関数定義
-    var f1 = (a:Int)=>a+1
     
     println(f1(2))
 
@@ -207,8 +211,8 @@ class CatActor extends Actor {
     def act() = {
         loop {
           react {
-            case (i,j)=>println("Hello CatActor" + i +","+j +"");
-            case (i)=>println("Hello CatActor" + i +"");
+            case (i,j)=>println("Mew-!("+i +","+j +")");
+            case (i)=>println("Mew-!" + i +"");
           }
         }
     }
